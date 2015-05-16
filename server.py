@@ -3,6 +3,7 @@ from network import Listener, Handler, poll
  
 handlers = {}  # map client handler to user name
  
+#MyHandler inherits from Handler, we do this so we can pass it to the Listener below
 class MyHandler(Handler):
     
     def on_open(self):
@@ -18,15 +19,14 @@ class MyHandler(Handler):
             print("{} has joined the chat!".format(msg['join']))
         elif ( 'data' in msg ): #server has been sent just data
             
-            if ( msg['data'].lower() == "ping" ):
+            if ( msg['data'].lower() == "ping" ): #if the contents of data msg are ping
                 print("got ping")
                 self.do_send("ping") #just send ping back
             
-        elif ('speak' in msg ):
+        elif ('speak' in msg ): #if chat message
             print("{}: {}".format(msg['speak'], msg['txt'])); # just print what they are saying
         else:
             pass
-
 
 
 port = 8888
