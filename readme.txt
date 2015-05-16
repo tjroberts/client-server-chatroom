@@ -13,7 +13,9 @@ True if var1 is a key in dict1. So this is how I determine the type of message t
 any other system type processes sent to the server. If the key speak is found, it just prints out chat information.
 
 The way I did the timeout when waiting for the ping (just in case server is offline) is with a global variable for the end time as well as a flag.
-The poll_for() function will let you poll and wait in the poll call for the specified amount of seconds. If the callback function on_msg() did not
+The poll_for() function will let you poll and wait in the poll call for the specified amount of seconds. The global keyword is just there because
+python using Dynamic Binding instead of using Lexical Binding like compiled languages so you need to use global if you are going to reassign
+values so python knows not to create a new variable but to look for a global. If the callback function on_msg() did not
 receive a ping message back the flag will never be set to true. So thats how I determine if there is a response. A negative side effect is that
 when it receives the response it will still wait for the specified time in poll_for(). Still, the endTime variable will be correct because the callback
 on_msg() is called immediately upon receipt of a message.
