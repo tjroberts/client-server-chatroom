@@ -59,7 +59,7 @@ while 1:
         #time ping interaction			
         startTime = time.time() * 1000   #milliseconds
 
-        #wait for response (use global but dont need keyword in since we arent re defining)
+        #wait for response (use global but don't need keyword in since we aren't re-defining)
         poll_for(TIMEOUT_VAL) # in seconds
         
 		#check if the flag has been ticked (got ping response back)
