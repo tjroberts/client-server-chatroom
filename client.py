@@ -36,7 +36,6 @@ class ClientControl(Handler):
     
     model = None
     view = None
-    client = None
     
     havePingResponse = False
     endTime = 0
@@ -44,14 +43,20 @@ class ClientControl(Handler):
     def on_close(self):
 	pass
     
-    def on_msg(self, msg): #right now client is assuming server is just sending pure data, no dictionaries
+    def on_msg(self, msg):
 
 	#do not print ping response, just record when message back is received and set flag
-	if ( msg.lower() == "ping" ):
-	    self.havePingResponse = True #use owner to access outer class
-	    self.endTime = time.time() * 1000
-	else: 
-	    view.display("Server says" + data)
+	if ( 'data' in msg ):
+	    
+	    if ( msg['data'].lower() == "ping" ):
+		self.havePingResponse = True #use owner to access outer class
+		self.endTime = time.time() * 1000
+		
+	elif ( 'speak' in msg ):
+	    view.display("{}: {}".format(msg['speak'], msg['txt']))
+	    
+	else:
+	    pass
 	
     #no need for self since this will only be called internally
     def periodic_poll(self):
@@ -82,7 +87,6 @@ class ClientControl(Handler):
 	    if ( mytxt.lower() == "ping" ):
 		
 		view.display("Pinging chat server, sending {} bytes.".format(sys.getsizeof("ping")));
-
 		self.do_send({'data':mytxt}) #data key when sending data to server
             
 		#time ping interaction			
