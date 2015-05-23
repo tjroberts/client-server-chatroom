@@ -1,8 +1,5 @@
 from network import Listener, Handler, poll
 
-#part of model, had to be global though :(
-handlers = {}
-
 #could delcare all relevant data here, like the scripts for interacting with users
 class ServerModel:
     
