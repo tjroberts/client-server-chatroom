@@ -1,5 +1,8 @@
 from network import Listener, Handler, poll
 
+#part of model, had to be global though :(
+handlers = {}
+
 #could delcare all relevant data here, like the scripts for interacting with users
 class ServerModel:
     
@@ -14,10 +17,6 @@ class ServerModel:
     def get_all_users(self):
         return self.all_users
         
-    def save_chat_script(self):
-        #save to predefined file
-        pass
-    
 
 class ServerView:
     
@@ -45,24 +44,32 @@ class ServerControl(Handler):
     #distribute message from user to all other users
     def distribute_message(self, message):
         
-        #get handle for user
+        #get dictionary of all user handles (keys) and usernames (values)
         all_users = self.model.get_all_users()
         
-        for userHandle in all_users:
-            if ( not all_users[userHandle] == message['speak'] ): #dont send to the guy that wrote the message
-                userHandle.do_send({'speak':message['speak'], 'txt':message['txt']})
+        #join message has different structure and needs to be handled seperately (rather than 'speak' types handles in else)
+        if ( 'join' in message ):
+            
+            for userHandle in all_users:
+                if ( not all_users[userHandle] == message['join'] ): #dont send to the guy who joined
+                    userHandle.do_send(message)
+        else:
+            for userHandle in all_users:
+                if ( not all_users[userHandle] == message['speak'] ): #dont send to the guy that wrote the message
+                    userHandle.do_send(message)
      
     def on_msg(self, msg):
         
         #server figures out what to do depending on keys in dict
         if ( 'join' in msg ):
-            self.view.display("{} has joined the chat!".format(msg['join']))
+            self.view.display("{} has joined the chat!".format(msg['join'])) #print on server for debug
+            self.distribute_message(msg)
             self.model.add_user(msg['join'], self)
             
         elif ( 'data' in msg ): #server has been sent just data
             
             if ( msg['data'].lower() == "ping" ): #if the contents of data msg are ping
-                self.view.display("got ping")
+                #self.view.display("got ping") #for debug
                 self.do_send({"data":"ping"}) #just send ping back
             
         elif ('speak' in msg ): #if chat message
