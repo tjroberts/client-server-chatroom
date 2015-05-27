@@ -24,9 +24,19 @@ class ClientModel:
     
 
 #view handles all communication with console (the view for our application, what people interact with)
-class ClientView:
+class CustomerView:
     
     display_text = ""
+    clientData = {}
+    supportType = {"1": "Complaints", "2": "Questions", "3": "Installation Support", "4": "Find my order"}
+    
+    def display_initial_dialogue(self):
+	self.clientData['join'] = self.get_user_input("Welcome to GTAModders customer support \nWhat is your name: ")
+	self.clientData['support'] = self.get_user_input("Hello {}, what type of support do you need(1. Complaints, 2. Questions, 3. Installation Support, 4. Find my order): ".format(self.clientData['join']))
+	self.clientData['summary'] = self.get_user_input("Welcome to {}, please enter a summary of your issue: \n".format(self.supportType[self.clientData['support']]))
+	
+    def get_dialogue_data(self):
+	return self.clientData
     
     def get_user_input(self, message = ""):
 	
@@ -37,8 +47,17 @@ class ClientView:
 	    return raw_input(message)
 	
     def display(self, data):
-	self.display_text += data + "\n"
-	print(data)
+	
+	#just print if regular string
+	if ( isinstance(data, basestring) ): #this wont work in python 3.X only compatible with 2.X (change basestring to str)
+	    displayData = data
+	elif ( 'join' in data ):
+	    displayData = "Hello my name is {}, I am pleased to assist you.".format(data['join'])
+	elif ( 'speak' in data ): #possibly have view handle how to display data....
+	    displayData = "{}: {}".format(data['speak'], data['txt'])
+	
+	print(displayData)
+	self.display_text += displayData + "\n"
 	
     def add_to_chat_script(self, data):
 	self.display_text += data + "\n"
@@ -63,19 +82,11 @@ class ClientControl(Handler):
     def on_msg(self, msg):
 
 	#do not print ping response, just record when message back is received and set flag
-	if ( 'data' in msg ):
-	    
-	    if ( msg['data'].lower() == "ping" ):
-		self.havePingResponse = True #use owner to access outer class
-		self.endTime = time.time() * 1000
-	elif ( 'join' in msg ):
-	    self.view.display("{} has joined the chat!".format(msg['join']))
-		
-	elif ( 'speak' in msg ): #possibly have view handle how to display data....
-	    view.display("{}: {}".format(msg['speak'], msg['txt']))
-	    
+	if ( 'ping' in msg ):
+	    self.havePingResponse = True #use owner to access outer class
+	    self.endTime = time.time() * 1000
 	else:
-	    pass #ignore possible invalid messages
+	    self.view.display(msg)
 	
     #no need for self since this will only be called internally
     def periodic_poll(self):
@@ -90,9 +101,10 @@ class ClientControl(Handler):
 	
 	TIMEOUT_VAL = model.get_poll_timeout() #get timeout value from model
 	
-	myname = view.get_user_input('What is your name? ')
-	self.view.add_to_chat_script('What is your name? ')
-	self.do_send({'join': myname})
+	self.view.display_initial_dialogue()
+	dialogueData = self.view.get_dialogue_data()
+	
+	self.do_send(dialogueData)  #send data gotten from user (customer/employee)
 	
 	thread = Thread(target=self.periodic_poll)
 	thread.daemon = True  # die when the main thread dies 
@@ -137,14 +149,14 @@ class ClientControl(Handler):
 		    self.havePingResponse = False #reset
             
 	    else: #if no special messages are found just default to sending chat type message
-		self.do_send({'speak':myname, 'txt':mytxt}) #default interaction, just name with text	
+		self.do_send({'speak':dialogueData['join'], 'txt':mytxt}) #default interaction, just name with text	
 		
 		
 		
 if __name__ == "__main__" :
     
     model = ClientModel()
-    view = ClientView()
+    view = CustomerView()
     control = ClientControl('localhost', 8888)
     
     control.start_control(model, view)

@@ -53,6 +53,14 @@ class ServerControl(Handler):
             for userHandle in all_users:
                 if ( not all_users[userHandle] == message['join'] ): #dont send to the guy who joined
                     userHandle.do_send(message)
+                    
+            #check if coming from employee or customer
+            if ( 'support' in message ):
+                
+                for userHandle in all_users:
+                    if ( not all_users[userHandle] == message['join'] ):
+                        userHandle.do_send(message)
+                    
         else:
             for userHandle in all_users:
                 if ( not all_users[userHandle] == message['speak'] ): #dont send to the guy that wrote the message
