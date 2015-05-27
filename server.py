@@ -14,6 +14,9 @@ class ServerModel:
     def add_user(self, username, handler):
         self.all_users[handler] = username
         
+    def remove_user(self, handler):
+        del self.all_users[handler]
+        
     def get_all_users(self):
         return self.all_users
         
@@ -26,9 +29,6 @@ class ServerView:
     def display(self, data):
         print(data)
 
- 
-#MyHandler inherits from Handler, we do this so we can pass it to the Listener below
-#this is similar to controller
 
 class ServerControl(Handler):
     
@@ -39,54 +39,50 @@ class ServerControl(Handler):
         pass
         
     def on_close(self):
-        pass
+        self.distribute_message({'leave': "{}".format(self.model.get_all_users()[self])})
+        self.model.remove_user(self)
         
     #distribute message from user to all other users
     def distribute_message(self, message):
         
-        #get dictionary of all user handles (keys) and usernames (values)
         all_users = self.model.get_all_users()
-        
-        #join message has different structure and needs to be handled seperately (rather than 'speak' types handles in else)
         if ( 'join' in message ):
             
             for userHandle in all_users:
                 if ( not all_users[userHandle] == message['join'] ): #dont send to the guy who joined
                     userHandle.do_send(message)
                     
-            #check if coming from employee or customer
-            if ( 'support' in message ):
-                
-                for userHandle in all_users:
-                    if ( not all_users[userHandle] == message['join'] ):
-                        userHandle.do_send(message)
-                    
-        else:
+        elif ( 'speak' in message ):
             for userHandle in all_users:
                 if ( not all_users[userHandle] == message['speak'] ): #dont send to the guy that wrote the message
                     userHandle.do_send(message)
+                    
+        elif ( 'leave' in message ):
+            for userHandle in all_users:
+                if ( not all_users[userHandle] == message['leave'] ):
+                    userHandle.do_send(message)
+            
      
     def on_msg(self, msg):
         
-        #server figures out what to do depending on keys in dict
         if ( 'join' in msg ):
             self.view.display("{} has joined the chat!".format(msg['join'])) #print on server for debug
-            self.distribute_message(msg)
             self.model.add_user(msg['join'], self)
+
+            if ( len(self.model.get_all_users()) > 2 ) :
+                self.do_send({'speak':'GTAModders Support', 'txt':'Sorry all customer support representatives are busy, please try again later.'})
+                self.do_close() #terminate the connection
+            else:
+                self.distribute_message(msg)
             
-        elif ( 'data' in msg ): #server has been sent just data
+        elif ( 'data' in msg ):
             
-            if ( msg['data'].lower() == "ping" ): #if the contents of data msg are ping
-                #self.view.display("got ping") #for debug
+            if ( msg['data'].lower() == "ping" ):
                 self.do_send({"data":"ping"}) #just send ping back
             
-        elif ('speak' in msg ): #if chat message
+        elif ('speak' in msg ): 
             self.view.display("{}: {}".format(msg['speak'], msg['txt'])); # just print what they are saying
-            
-            #send to all other users except sending user
             self.distribute_message(msg)
-        else:
-            pass
 
 if __name__ == "__main__" :
 

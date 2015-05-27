@@ -38,11 +38,16 @@ class EmployeeView:
             elif ( data['support'] == "4" ) :
                 issue = "Find my order"
                 
-            self.displayData += "{} selected {} for this chat\n".format(data['join'], issue)
+            self.displayData += "{} selected '{}' for this chat\n".format(data['join'], issue)
             self.displayData += "Summary of {}'s problems: \n".format(data['join']) + data['summary'] + "\n"
         
         elif ( 'speak' in data ):
             self.displayData = "{}: {}".format(data['speak'], data['txt'])
+            
+        elif ( 'leave' in data ):
+            self.displayData = "{} has logged off.".format(data['leave'])
+        else:
+            return #dont display things that you dont understand
         
         self.display_text += self.displayData + "\n"
         print(self.displayData)
