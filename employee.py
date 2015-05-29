@@ -31,7 +31,7 @@ class EmployeeView:
         if ( isinstance(data, basestring) ):
             displayData += data
         elif ( 'join' in data ):
-            displayData += "\n{} has joined the chat!\n".format(data['join'])
+            displayData += "\n{0} has joined the chat!\n".format(data['join'])
             
             issue = ""
             if ( data['support'] == "1" ) :
@@ -43,14 +43,14 @@ class EmployeeView:
             elif ( data['support'] == "4" ) :
                 issue = "Find my order"
                 
-            displayData += "{} selected '{}' for this chat\n".format(data['join'], issue)
-            displayData += "Summary of {}'s problems: \n".format(data['join']) + data['summary'] + "\n"
+            displayData += "{0} selected '{1}' for this chat\n".format(data['join'], issue)
+            displayData += "Summary of {0}'s problems: \n".format(data['join']) + data['summary'] + "\n"
         
         elif ( 'speak' in data ):
-            displayData += "{}: {}".format(data['speak'], data['txt'])
+            displayData += "{0}: {1}".format(data['speak'], data['txt'])
             
         elif ( 'leave' in data ):
-            displayData += "{} has logged off.".format(data['leave'])
+            displayData += "{0} has logged off.".format(data['leave'])
         else:
             return #dont display things that you dont understand
         

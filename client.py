@@ -36,8 +36,8 @@ class CustomerView:
     
     def display_initial_dialogue(self):
 	self.clientData['join'] = self.get_user_input("Welcome to GTAModders customer support \nWhat is your name: ")
-	self.clientData['support'] = self.get_user_input("Hello {}, what type of support do you need(1. Complaints, 2. Questions, 3. Installation Support, 4. Find my order): ".format(self.clientData['join']))
-	self.clientData['summary'] = self.get_user_input("Welcome to {}, please enter a summary of your issue: \n".format(self.supportType[self.clientData['support']]))
+	self.clientData['support'] = self.get_user_input("Hello {0}, what type of support do you need(1. Complaints, 2. Questions, 3. Installation Support, 4. Find my order): ".format(self.clientData['join']))
+	self.clientData['summary'] = self.get_user_input("Welcome to {0}, please enter a summary of your issue: \n".format(self.supportType[self.clientData['support']]))
 	
     def get_dialogue_data(self):
 	return self.clientData
@@ -61,11 +61,11 @@ class CustomerView:
 	if ( isinstance(data, basestring) ): #this wont work in python 3.X only compatible with 2.X (change basestring to str)
 	    displayData += data
 	elif ( 'join' in data ):
-	    displayData += "Hello my name is {}, I am pleased to assist you.".format(data['join'])
+	    displayData += "Hello my name is {0}, I am pleased to assist you.".format(data['join'])
 	elif ( 'speak' in data ):
-	    displayData += "{}: {}".format(data['speak'], data['txt'])
+	    displayData += "{0}: {1}".format(data['speak'], data['txt'])
         elif ( 'leave' in data ):
-            displayData += "{} has logged off.".format(data['leave'])
+            displayData += "{0} has logged off.".format(data['leave'])
 	else:
 	    return #dont display things you dont understand
 	
@@ -145,16 +145,16 @@ class ClientControl(Handler):
 	    
 	    elif ( mytxt.lower() == "ping" ):
 		
-		self.view.display("Pinging chat server, sending {} bytes.".format(sys.getsizeof("ping")));
+		self.view.display("Pinging chat server, sending {0} bytes.".format(sys.getsizeof("ping")));
 		self.do_send({'data':mytxt}) #data key when sending data to server
             			
 		startTime = time.time() * 1000   #milliseconds
 		poll_for(TIMEOUT_VAL) # in seconds
         
 		if ( (not self.havePingResponse) ):
-		    self.view.display("No response from server, timed out after {:.2} seconds.".format(time.time() - (startTime/1000)))
+		    self.view.display("No response from server, timed out after {0:.2} seconds.".format(time.time() - (startTime/1000)))
 		else:
-		    view.display("Server responded after {} ms\n".format((self.endTime - startTime)))
+		    view.display("Server responded after {0:.4} ms\n".format((self.endTime - startTime)))
 		    self.havePingResponse = False #reset
 	    else: 
 		self.do_send({'speak':self.dialogueData['join'], 'txt':mytxt}) #default interaction, just name with text	
@@ -162,6 +162,7 @@ class ClientControl(Handler):
 		
 if __name__ == "__main__" :
     
+    #IP = '192.168.1.89'
     IP = get_my_ip() #change when this is running on different computer
     
     model = ClientModel()

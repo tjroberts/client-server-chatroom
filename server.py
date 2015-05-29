@@ -40,7 +40,7 @@ class ServerControl(Handler):
         
     def on_close(self):
         #send leave message with name of user that logged off
-        self.distribute_message({'leave': "{}".format(self.model.get_all_users()[self])}) 
+        self.distribute_message({'leave': "{0}".format(self.model.get_all_users()[self])}) 
         self.model.remove_user(self)
         
     #distribute message from user to all other users
@@ -87,7 +87,7 @@ class ServerControl(Handler):
                 self.do_send({"data":"ping"}) #just send ping back
             
         elif ('speak' in msg ): 
-            #self.view.display("{}: {}".format(msg['speak'], msg['txt'])); # just print what they are saying #display chat for debug
+            #self.view.display("{0}: {1}".format(msg['speak'], msg['txt'])); # just print what they are saying #display chat for debug
             self.distribute_message(msg)
 
 if __name__ == "__main__" :
