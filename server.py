@@ -7,10 +7,22 @@ handlers = {}
 class ServerModel:
     
     all_users = {} #empty dictionary
+    waiting_users = []
     
     def __init__(self):
         pass
     
+    #WAIT USERS
+    def add_wait_user(self, username, handler, message):
+        self.waiting_users.append((handler, username, message)) #tuple
+        
+    def remove_wait_user(self, user):
+        self.waiting_users.remove(user)
+        
+    def get_wait_users(self):
+        return self.waiting_users
+    
+    #ALL USERS
     def add_user(self, username, handler):
         self.all_users[handler] = username
         
@@ -43,42 +55,54 @@ class ServerControl(Handler):
         self.distribute_message({'leave': "{0}".format(self.model.get_all_users()[self])}) 
         self.model.remove_user(self)
         
+        #let next user in
+        if ( len(self.model.get_wait_users()) > 0 ):
+            first_in_line = self.model.get_wait_users()[0] 
+            self.model.add_user(first_in_line[1], first_in_line[0])
+            self.model.remove_wait_user(first_in_line)
+            first_in_line[0].do_send({'speak':'GTAModders Support', 'txt':'You are now being connected to a customer service representative'})
+            first_in_line[0].distribute_message(first_in_line[2])
+        
     #distribute message from user to all other users
     def distribute_message(self, message):
         
-        all_users = self.model.get_all_users()
-        if ( 'join' in message ):
-            
-            for userHandle in all_users:
-                if ( not all_users[userHandle] == message['join'] ): #dont send to the guy who joined
-                    userHandle.do_send(message)
-                    
-        elif ( 'speak' in message ):
-            for userHandle in all_users:
-                if ( not all_users[userHandle] == message['speak'] ): #dont send to the guy that wrote the message
-                    userHandle.do_send(message)
-                    
-        elif ( 'leave' in message ):
-            for userHandle in all_users:
-                if ( not all_users[userHandle] == message['leave'] ):
-                    userHandle.do_send(message)
+        if ( self in self.model.get_all_users() ): #only distribute to people who have joined all_users
+        
+            all_users = self.model.get_all_users()
+            if ( 'join' in message ):
+                
+                for userHandle in all_users:
+                    if ( not all_users[userHandle] == message['join'] ): #dont send to the guy who joined
+                        userHandle.do_send(message)
+                        
+            elif ( 'speak' in message ):
+                for userHandle in all_users:
+                    if ( not all_users[userHandle] == message['speak'] ): #dont send to the guy that wrote the message
+                        userHandle.do_send(message)
+                        
+            elif ( 'leave' in message ):
+                for userHandle in all_users:
+                    if ( not all_users[userHandle] == message['leave'] ):
+                        userHandle.do_send(message)
             
      
     def on_msg(self, msg):
         
         if ( 'join' in msg ):
             #self.view.display("{} has joined the chat!".format(msg['join'])) #print on server for debug
-            self.model.add_user(msg['join'], self)
-
-            if ( len(self.model.get_all_users()) > 2 ) :
-                self.do_send({'speak':'GTAModders Support', 'txt':'Sorry all customer service agents are busy, please try again later.'})
-                self.do_close()
             
-            elif ( 'support' in msg ) : #for clients
-                self.do_send({'speak':'GTAModders Support', 'txt':'You are now being connected to a customer service representative'})
-                self.distribute_message(msg)
+            if ( 'support' in msg ) : #for clients
+                
+                if ( len(self.model.get_all_users()) == 2 ) :
+                    self.model.add_wait_user(msg['join'], self, msg)
+                    self.do_send({'speak':'GTAModders Support', 'txt':'Sorry all customer service agents are busy, please wait.'})
+                else:
+                    self.model.add_user(msg['join'], self)
+                    self.do_send({'speak':'GTAModders Support', 'txt':'You are now being connected to a customer service representative'})
+                    self.distribute_message(msg)
                 
             else: #for employees
+                self.model.add_user(msg['join'], self)
                 self.distribute_message(msg)
             
         elif ( 'data' in msg ):
