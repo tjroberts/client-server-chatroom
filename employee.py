@@ -21,10 +21,10 @@ class EmployeeView:
             return raw_input(message)
 	
     def display(self, data):
-        self.displayData = ""
+        displayData = ""
         
         if ( isinstance(data, basestring) ):
-            self.displayData = data
+            displayData = data
         elif ( 'join' in data ):
             self.displayData = "\n{} has joined the chat!\n".format(data['join'])
             
@@ -38,19 +38,19 @@ class EmployeeView:
             elif ( data['support'] == "4" ) :
                 issue = "Find my order"
                 
-            self.displayData += "{} selected '{}' for this chat\n".format(data['join'], issue)
-            self.displayData += "Summary of {}'s problems: \n".format(data['join']) + data['summary'] + "\n"
+            displayData += "{} selected '{}' for this chat\n".format(data['join'], issue)
+            displayData += "Summary of {}'s problems: \n".format(data['join']) + data['summary'] + "\n"
         
         elif ( 'speak' in data ):
-            self.displayData = "{}: {}".format(data['speak'], data['txt'])
+            displayData = "{}: {}".format(data['speak'], data['txt'])
             
         elif ( 'leave' in data ):
-            self.displayData = "{} has logged off.".format(data['leave'])
+            displayData = "{} has logged off.".format(data['leave'])
         else:
             return #dont display things that you dont understand
         
         self.display_text += self.displayData + "\n"
-        print(self.displayData)
+        print(displayData)
 	
     def add_to_chat_script(self, data):
         self.display_text += data + "\n"
@@ -63,6 +63,6 @@ if __name__ == "__main__" :
     
     model = ClientModel()
     view = EmployeeView()
-    control = ClientControl('localhost', 8888)
+    control = ClientControl(get_my_ip(), 8888)
     
     control.start_control(model, view)

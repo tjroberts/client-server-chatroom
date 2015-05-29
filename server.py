@@ -1,4 +1,4 @@
-from network import Listener, Handler, poll
+from network import Listener, Handler, poll, poll_for
 
 #part of model, had to be global though :(
 handlers = {}
@@ -39,7 +39,8 @@ class ServerControl(Handler):
         pass
         
     def on_close(self):
-        self.distribute_message({'leave': "{}".format(self.model.get_all_users()[self])})
+        #send leave message with name of user that logged off
+        self.distribute_message({'leave': "{}".format(self.model.get_all_users()[self])}) 
         self.model.remove_user(self)
         
     #distribute message from user to all other users
@@ -66,13 +67,18 @@ class ServerControl(Handler):
     def on_msg(self, msg):
         
         if ( 'join' in msg ):
-            self.view.display("{} has joined the chat!".format(msg['join'])) #print on server for debug
+            #self.view.display("{} has joined the chat!".format(msg['join'])) #print on server for debug
             self.model.add_user(msg['join'], self)
 
             if ( len(self.model.get_all_users()) > 2 ) :
-                self.do_send({'speak':'GTAModders Support', 'txt':'Sorry all customer support representatives are busy, please try again later.'})
-                self.do_close() #terminate the connection
-            else:
+                self.do_send({'speak':'GTAModders Support', 'txt':'Sorry all customer service agents are busy, please try again later.'})
+                self.do_close()
+            
+            elif ( 'support' in msg ) : #for clients
+                self.do_send({'speak':'GTAModders Support', 'txt':'You are now being connected to a customer service representative'})
+                self.distribute_message(msg)
+                
+            else: #for employees
                 self.distribute_message(msg)
             
         elif ( 'data' in msg ):
@@ -81,7 +87,7 @@ class ServerControl(Handler):
                 self.do_send({"data":"ping"}) #just send ping back
             
         elif ('speak' in msg ): 
-            self.view.display("{}: {}".format(msg['speak'], msg['txt'])); # just print what they are saying
+            #self.view.display("{}: {}".format(msg['speak'], msg['txt'])); # just print what they are saying #display chat for debug
             self.distribute_message(msg)
 
 if __name__ == "__main__" :

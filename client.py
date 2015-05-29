@@ -1,4 +1,4 @@
-from network import Handler, poll, poll_for
+from network import Handler, poll, poll_for, get_my_ip
 import sys
 from threading import Thread
 from time import sleep
@@ -45,6 +45,7 @@ class CustomerView:
 	    return raw_input(message)
 	
     def display(self, data):
+	displayData = ""
 	
 	if ( isinstance(data, basestring) ): #this wont work in python 3.X only compatible with 2.X (change basestring to str)
 	    displayData = data
@@ -52,6 +53,8 @@ class CustomerView:
 	    displayData = "Hello my name is {}, I am pleased to assist you.".format(data['join'])
 	elif ( 'speak' in data ):
 	    displayData = "{}: {}".format(data['speak'], data['txt'])
+        elif ( 'leave' in data ):
+            displayData = "{} has logged off.".format(data['leave'])
 	else:
 	    return #dont display things you dont understand
 	
@@ -70,19 +73,23 @@ class ClientControl(Handler):
     model = None
     view = None
     dialogueData = None
+    thread = None       #thread for polling socket
+    still_connected = True
     
     havePingResponse = False
     endTime = 0
     
     def on_close(self):
 	self.view.display("Goodbye!")
-	sys.exit() #doesnt work well, since this is in a child thread, it doesnt kill main python process
+	self.still_connected = False
+	sys.exit()                     #kill polling thread
     
     def on_msg(self, msg):
 
-	if ( 'ping' in msg ):
-	    self.havePingResponse = True #use owner to access outer class
-	    self.endTime = time.time() * 1000
+	if ( 'data' in msg ):
+	    if ( msg['data'].lower() == "ping" ):
+		self.havePingResponse = True #use owner to access outer class
+		self.endTime = time.time() * 1000
 	else:
 	    self.view.display(msg)
 	
@@ -103,11 +110,11 @@ class ClientControl(Handler):
 	
 	self.do_send(self.dialogueData)  
 	
-	thread = Thread(target=self.periodic_poll)
-	thread.daemon = True  # die when the main thread dies 
-	thread.start()
+	self.thread = Thread(target=self.periodic_poll)
+	self.thread.daemon = True  # die when the main thread dies 
+	self.thread.start()
 
-	while 1:
+	while self.still_connected:
 	    
 	    mytxt = view.get_user_input()
 	    self.view.add_to_chat_script(mytxt) #add what user is typing to chat script
@@ -144,7 +151,7 @@ if __name__ == "__main__" :
     
     model = ClientModel()
     view = CustomerView()
-    control = ClientControl('localhost', 8888)
+    control = ClientControl(get_my_ip(), 8888)
     
     control.start_control(model, view)
 		
