@@ -23,10 +23,15 @@ class EmployeeView:
     def display(self, data):
         displayData = ""
         
+        if ( activate_easter_egg ) :
+            displayData += '\033[1;36m' #make colored text for easter egg
+        else:
+            displayData += '\033[0m'
+        
         if ( isinstance(data, basestring) ):
-            displayData = data
+            displayData += data
         elif ( 'join' in data ):
-            self.displayData = "\n{} has joined the chat!\n".format(data['join'])
+            displayData += "\n{} has joined the chat!\n".format(data['join'])
             
             issue = ""
             if ( data['support'] == "1" ) :
@@ -42,14 +47,14 @@ class EmployeeView:
             displayData += "Summary of {}'s problems: \n".format(data['join']) + data['summary'] + "\n"
         
         elif ( 'speak' in data ):
-            displayData = "{}: {}".format(data['speak'], data['txt'])
+            displayData += "{}: {}".format(data['speak'], data['txt'])
             
         elif ( 'leave' in data ):
-            displayData = "{} has logged off.".format(data['leave'])
+            displayData += "{} has logged off.".format(data['leave'])
         else:
             return #dont display things that you dont understand
         
-        self.display_text += self.displayData + "\n"
+        self.display_text += displayData + "\n"
         print(displayData)
 	
     def add_to_chat_script(self, data):
@@ -62,7 +67,7 @@ class EmployeeView:
 if __name__ == "__main__" :
     
     model = ClientModel()
-    view = EmployeeView()
-    control = ClientControl(get_my_ip(), 8888)
+    view = EmployeeView()  #pass it employee view
+    control = ClientControl(get_my_ip(), 12345)
     
     control.start_control(model, view)

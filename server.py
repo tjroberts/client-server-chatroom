@@ -1,4 +1,4 @@
-from network import Listener, Handler, poll, poll_for
+from network import Listener, Handler, poll, poll_for, get_my_ip
 
 #part of model, had to be global though :(
 handlers = {}
@@ -92,9 +92,11 @@ class ServerControl(Handler):
 
 if __name__ == "__main__" :
 
-    port = 8888
-    server = Listener(port, ServerControl)
+    port = 12345
     
+    print(get_my_ip())
+    
+    server = Listener(port, ServerControl)
     while 1:
         poll(timeout=0.05) # in seconds
 

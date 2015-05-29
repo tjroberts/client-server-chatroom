@@ -2,8 +2,11 @@ from network import Handler, poll, poll_for, get_my_ip
 import sys
 from threading import Thread
 from time import sleep
+import re
 
 import time
+
+activate_easter_egg = False
 
 #could delcare all relevant data here, like the scripts for interacting with users
 class ClientModel:
@@ -18,6 +21,8 @@ class ClientModel:
 	return self.TIMEOUT_VAL
         
     def save_chat_log(self, chat_log):
+	chat_log = re.sub(r'\033\[1;36m', '', chat_log) #remove ANSI color strings
+	chat_log = re.sub(r'\033\[0m', '', chat_log) #remove ANSI color strings
         log_file = open(self.CHAT_LOG_FILE, 'w')
         log_file.write(chat_log)
         log_file.close()
@@ -45,16 +50,22 @@ class CustomerView:
 	    return raw_input(message)
 	
     def display(self, data):
+	
 	displayData = ""
 	
+        if ( activate_easter_egg ) :
+            displayData += '\033[1;36m' #make colored text for easter egg
+        else:
+            displayData += '\033[0m'
+	
 	if ( isinstance(data, basestring) ): #this wont work in python 3.X only compatible with 2.X (change basestring to str)
-	    displayData = data
+	    displayData += data
 	elif ( 'join' in data ):
-	    displayData = "Hello my name is {}, I am pleased to assist you.".format(data['join'])
+	    displayData += "Hello my name is {}, I am pleased to assist you.".format(data['join'])
 	elif ( 'speak' in data ):
-	    displayData = "{}: {}".format(data['speak'], data['txt'])
+	    displayData += "{}: {}".format(data['speak'], data['txt'])
         elif ( 'leave' in data ):
-            displayData = "{} has logged off.".format(data['leave'])
+            displayData += "{} has logged off.".format(data['leave'])
 	else:
 	    return #dont display things you dont understand
 	
@@ -73,7 +84,6 @@ class ClientControl(Handler):
     model = None
     view = None
     dialogueData = None
-    thread = None       #thread for polling socket
     still_connected = True
     
     havePingResponse = False
@@ -100,19 +110,20 @@ class ClientControl(Handler):
 
     def start_control(self, model, view):
 
+	global activate_easter_egg
 	self.model = model
 	self.view = view
 	
 	TIMEOUT_VAL = model.get_poll_timeout() 
 	
+	#interaction here varies depending on view (employee/customer)
 	self.view.display_initial_dialogue()
 	self.dialogueData = self.view.get_dialogue_data()
+	self.do_send(self.dialogueData) #send initial data, depends on which view it being used
 	
-	self.do_send(self.dialogueData)  
-	
-	self.thread = Thread(target=self.periodic_poll)
-	self.thread.daemon = True  # die when the main thread dies 
-	self.thread.start()
+	thread = Thread(target=self.periodic_poll)
+	thread.daemon = True  # die when the main thread dies 
+	thread.start()
 
 	while self.still_connected:
 	    
@@ -127,8 +138,10 @@ class ClientControl(Handler):
 		self.do_close()
 		
 	    elif ( mytxt.lower() == "e" ):
-		self.view.display("FUN EASTER EGG HERE...")
-		#fun easter egg goes here...
+		if ( activate_easter_egg ):
+		    activate_easter_egg = False
+		else:
+		    activate_easter_egg = True
 	    
 	    elif ( mytxt.lower() == "ping" ):
 		
@@ -149,9 +162,11 @@ class ClientControl(Handler):
 		
 if __name__ == "__main__" :
     
+    IP = get_my_ip() #change when this is running on different computer
+    
     model = ClientModel()
-    view = CustomerView()
-    control = ClientControl(get_my_ip(), 8888)
+    view = CustomerView() #pass it the customer view
+    control = ClientControl(IP, 12345)
     
     control.start_control(model, view)
 		
