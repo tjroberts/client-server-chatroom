@@ -162,8 +162,12 @@ class ClientControl(Handler):
 		
 if __name__ == "__main__" :
     
-    #IP = '192.168.1.89'
-    IP = get_my_ip() #change when this is running on different computer
+    response = raw_input("Please specify an IP address (enter to use local IP): ")
+    
+    if ( response == "" ):
+        IP = get_my_ip()
+    else :
+        IP = response
     
     model = ClientModel()
     view = CustomerView() #pass it the customer view

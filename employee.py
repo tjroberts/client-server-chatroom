@@ -66,8 +66,15 @@ class EmployeeView:
 
 if __name__ == "__main__" :
     
+    response = raw_input("Please specify an IP address (enter to use local IP): ")
+    
+    if ( response == "" ):
+        IP = get_my_ip()
+    else :
+        IP = response
+    
     model = ClientModel()
     view = EmployeeView()  #pass it employee view
-    control = ClientControl(get_my_ip(), 12345)
+    control = ClientControl(IP, 12345)
     
     control.start_control(model, view)
