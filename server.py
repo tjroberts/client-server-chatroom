@@ -14,7 +14,7 @@ class ServerModel:
     
     #WAIT USERS
     def add_wait_user(self, username, handler, message):
-        self.waiting_users.append((handler, username, message)) #tuple
+        self.waiting_users.append((username, handler, message)) #tuple
         
     def remove_wait_user(self, user):
         self.waiting_users.remove(user)
@@ -58,10 +58,10 @@ class ServerControl(Handler):
         #let next user in
         if ( len(self.model.get_wait_users()) > 0 ):
             first_in_line = self.model.get_wait_users()[0] 
-            self.model.add_user(first_in_line[1], first_in_line[0])
+            self.model.add_user(first_in_line[0], first_in_line[1])
             self.model.remove_wait_user(first_in_line)
-            first_in_line[0].do_send({'speak':'GTAModders Support', 'txt':'You are now being connected to a customer service representative'})
-            first_in_line[0].distribute_message(first_in_line[2])
+            first_in_line[1].do_send({'speak':'GTAModders Support', 'txt':'You are now being connected to a customer service representative'})
+            first_in_line[1].distribute_message(first_in_line[2])
         
     #distribute message from user to all other users
     def distribute_message(self, message):
@@ -89,7 +89,6 @@ class ServerControl(Handler):
     def on_msg(self, msg):
         
         if ( 'join' in msg ):
-            #self.view.display("{} has joined the chat!".format(msg['join'])) #print on server for debug
             
             if ( 'support' in msg ) : #for clients
                 
@@ -111,14 +110,13 @@ class ServerControl(Handler):
                 self.do_send({"data":"ping"}) #just send ping back
             
         elif ('speak' in msg ): 
-            #self.view.display("{0}: {1}".format(msg['speak'], msg['txt'])); # just print what they are saying #display chat for debug
             self.distribute_message(msg)
 
 if __name__ == "__main__" :
 
     port = 12345
     
-    print(get_my_ip())
+    print("Server IP address: " + get_my_ip())
     
     server = Listener(port, ServerControl)
     while 1:

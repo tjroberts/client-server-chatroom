@@ -24,7 +24,7 @@ class EmployeeView:
         displayData = ""
         
         if ( activate_easter_egg ) :
-            displayData += '\033[1;36m' #make colored text for easter egg
+            displayData += '\033[1;36m' #make colored text for easter egg (can cause problems in IDLE or terminals that don't support color)
         else:
             displayData += '\033[0m'
         

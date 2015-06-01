@@ -21,8 +21,8 @@ class ClientModel:
 	return self.TIMEOUT_VAL
         
     def save_chat_log(self, chat_log):
-	chat_log = re.sub(r'\033\[1;36m', '', chat_log) #remove ANSI color strings
-	chat_log = re.sub(r'\033\[0m', '', chat_log) #remove ANSI color strings
+	chat_log = re.sub(r'\033\[1;36m', '', chat_log) #remove ANSI color strings (easter egg)
+	chat_log = re.sub(r'\033\[0m', '', chat_log) #remove ANSI color strings    (easter egg)
         log_file = open(self.CHAT_LOG_FILE, 'w')
         log_file.write(chat_log)
         log_file.close()
@@ -140,8 +140,10 @@ class ClientControl(Handler):
 	    elif ( mytxt.lower() == "e" ):
 		if ( activate_easter_egg ):
 		    activate_easter_egg = False
+		    self.view.display("Easter egg deactivated.")
 		else:
 		    activate_easter_egg = True
+		    self.view.display("Easter egg active! (color)")
 	    
 	    elif ( mytxt.lower() == "ping" ):
 		
