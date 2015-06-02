@@ -97,7 +97,7 @@ class ClientControl(Handler):
     def on_msg(self, msg):
 
 	if ( 'data' in msg ):
-	    if ( msg['data'].lower() == "ping" ):
+	    if ( msg['data'].lower() == ":ping" ):
 		self.havePingResponse = True #use owner to access outer class
 		self.endTime = time.time() * 1000
 	else:
@@ -130,14 +130,14 @@ class ClientControl(Handler):
 	    mytxt = view.get_user_input()
 	    self.view.add_to_chat_script(mytxt) #add what user is typing to chat script
 
-	    if ( mytxt.lower() == "s" ):
+	    if ( mytxt.lower() == ":s" ):
 		self.model.save_chat_log(self.view.get_display_text())
 		self.view.display("Chat Log Saved")
 		
-	    elif ( mytxt.lower() == "q" ):
+	    elif ( mytxt.lower() == ":q" ):
 		self.do_close()
 		
-	    elif ( mytxt.lower() == "e" ):
+	    elif ( mytxt.lower() == ":e" ):
 		if ( activate_easter_egg ):
 		    activate_easter_egg = False
 		    self.view.display("Easter egg deactivated.")
@@ -145,7 +145,7 @@ class ClientControl(Handler):
 		    activate_easter_egg = True
 		    self.view.display("Easter egg active! (color)")
 	    
-	    elif ( mytxt.lower() == "ping" ):
+	    elif ( mytxt.lower() == ":ping" ):
 		
 		self.view.display("Pinging chat server, sending {0} bytes.".format(sys.getsizeof("ping")));
 		self.do_send({'data':mytxt}) #data key when sending data to server

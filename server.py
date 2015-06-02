@@ -106,8 +106,8 @@ class ServerControl(Handler):
             
         elif ( 'data' in msg ):
             
-            if ( msg['data'].lower() == "ping" ):
-                self.do_send({"data":"ping"}) #just send ping back
+            if ( msg['data'].lower() == ":ping" ):
+                self.do_send({"data":":ping"}) #just send ping back
             
         elif ('speak' in msg ): 
             self.distribute_message(msg)
